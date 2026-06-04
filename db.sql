@@ -23,10 +23,11 @@ CREATE TABLE catalog (
 CREATE TABLE orders (
   id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT NOT NULL,
-  course VARCHAR(150) NOT NULL,
+  catalog_id INT NULL,
   start_date VARCHAR(10) NOT NULL,
   payment VARCHAR(20) NOT NULL,
   status VARCHAR(20) DEFAULT 'Новая',
   review TEXT,
-  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (catalog_id) REFERENCES catalog(id) ON DELETE SET NULL
 );

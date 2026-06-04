@@ -17,7 +17,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   header('Location: orders.php'); exit;
 }
 
-$stmt = $pdo->prepare('SELECT * FROM orders WHERE user_id = ? ORDER BY id DESC');
+$stmt = $pdo->prepare('
+  SELECT orders.*, catalog.title AS course_title
+  FROM orders
+  LEFT JOIN catalog ON catalog.id = orders.catalog_id
+  WHERE orders.user_id = ?
+  ORDER BY orders.id DESC');
 $stmt->execute([user()['id']]);
 $orders = $stmt->fetchAll();
 
@@ -53,7 +58,7 @@ $badgeClass = [
     <?php foreach ($orders as $order): ?>
       <article class="order order--<?= $badgeClass[$order['status']] ?? 'badge-new' ?>">
         <header class="order-head">
-          <h3><?= htmlspecialchars($order['course']) ?></h3>
+          <h3><?= htmlspecialchars($order['course_title'] ?? '(курс удалён)') ?></h3>
           <span class="badge <?= $badgeClass[$order['status']] ?? 'badge-new' ?>">
             <?= htmlspecialchars($order['status']) ?>
           </span>

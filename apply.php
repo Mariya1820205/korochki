@@ -5,30 +5,24 @@ if (admin()) { header('Location: admin.php'); exit; }
 
 // Все курсы из БД
 $catalog = $pdo->query('SELECT id, title FROM catalog ORDER BY title')->fetchAll();
-$titles = array_column($catalog, 'title');
+$catalogIds = array_column($catalog, 'id');
 
 $minDate = date('Y-m-d');
 $maxDate = date('Y-m-d', strtotime('+1 year'));
 
-// Предвыбор курса из ссылки "Записаться" на каталоге
-$course = '';
-if (isset($_GET['course'])) {
-  $stmt = $pdo->prepare('SELECT title FROM catalog WHERE id = ?');
-  $stmt->execute([(int)$_GET['course']]);
-  $course = $stmt->fetchColumn() ?: '';
-}
-
+// Предвыбор курса из ссылки "Записаться" на каталоге (?course=ID)
+$catalogId = (int)($_GET['course'] ?? 0);
 $startDate = '';
 $payment = '';
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-  $course = $_POST['course'] ?? '';
+  $catalogId = (int)($_POST['catalog_id'] ?? 0);
   $startDate = trim($_POST['start_date'] ?? '');
   $payment = $_POST['payment'] ?? '';
 
-  if (!in_array($course, $titles)) {
-    $errors['course'] = 'Выберите курс из списка';
+  if (!in_array($catalogId, $catalogIds)) {
+    $errors['catalog_id'] = 'Выберите курс из списка';
   }
   if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $startDate)) {
     $errors['start_date'] = 'Выберите дату';
@@ -41,9 +35,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
   if (!$errors) {
     $stmt = $pdo->prepare('
-      INSERT INTO orders (user_id, course, start_date, payment)
+      INSERT INTO orders (user_id, catalog_id, start_date, payment)
       VALUES (?, ?, ?, ?)');
-    $stmt->execute([user()['id'], $course, $startDate, $payment]);
+    $stmt->execute([user()['id'], $catalogId, $startDate, $payment]);
     header('Location: orders.php'); exit;
   }
 }
@@ -63,14 +57,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <h1>Подать заявку</h1>
   <form method="post" class="form">
     <label>Курс
-      <select name="course">
-        <option value="" disabled <?= $course === '' ? 'selected' : '' ?>>— выберите курс —</option>
-        <?php foreach ($titles as $title): ?>
-          <option <?= $course === $title ? 'selected' : '' ?>><?= htmlspecialchars($title) ?></option>
+      <select name="catalog_id">
+        <option value="" disabled <?= $catalogId === 0 ? 'selected' : '' ?>>— выберите курс —</option>
+        <?php foreach ($catalog as $course): ?>
+          <option value="<?= (int)$course['id'] ?>" <?= $catalogId === (int)$course['id'] ? 'selected' : '' ?>>
+            <?= htmlspecialchars($course['title']) ?>
+          </option>
         <?php endforeach; ?>
       </select>
     </label>
-    <span class="err"><?= $errors['course'] ?? '' ?></span>
+    <span class="err"><?= $errors['catalog_id'] ?? '' ?></span>
 
     <label>Дата начала обучения
       <input type="date" name="start_date"

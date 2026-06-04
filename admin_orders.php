@@ -37,9 +37,10 @@ if ($filter !== '') {
   $total = $totalStmt->fetchColumn();
 
   $listStmt = $pdo->prepare('
-    SELECT orders.*, users.name, users.login
+    SELECT orders.*, users.name, users.login, catalog.title AS course_title
     FROM orders
     JOIN users ON users.id = orders.user_id
+    LEFT JOIN catalog ON catalog.id = orders.catalog_id
     WHERE orders.status = ?
     ORDER BY orders.id DESC
     LIMIT ' . $perPage . ' OFFSET ' . $offset);
@@ -47,9 +48,10 @@ if ($filter !== '') {
 } else {
   $total = $pdo->query('SELECT COUNT(*) FROM orders')->fetchColumn();
   $listStmt = $pdo->query('
-    SELECT orders.*, users.name, users.login
+    SELECT orders.*, users.name, users.login, catalog.title AS course_title
     FROM orders
     JOIN users ON users.id = orders.user_id
+    LEFT JOIN catalog ON catalog.id = orders.catalog_id
     ORDER BY orders.id DESC
     LIMIT ' . $perPage . ' OFFSET ' . $offset);
 }
@@ -89,7 +91,7 @@ $pages = max(1, ceil($total / $perPage));
     <?php foreach ($orders as $order): ?>
       <tr>
         <td><?= htmlspecialchars($order['name']) ?> (<?= htmlspecialchars($order['login']) ?>)</td>
-        <td><?= htmlspecialchars($order['course']) ?></td>
+        <td><?= htmlspecialchars($order['course_title'] ?? '(курс удалён)') ?></td>
         <td><?= formatDate($order['start_date']) ?></td>
         <td><?= htmlspecialchars($order['payment']) ?></td>
         <td>
