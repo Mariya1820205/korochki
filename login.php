@@ -3,6 +3,7 @@ require 'db.php';
 
 $login = '';
 $err = '';
+$success = isset($_GET['registered']) ? 'Регистрация прошла успешно! Войдите в систему.' : '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $login = trim($_POST['login'] ?? '');
@@ -12,7 +13,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $stmt->execute([$login]);
   $foundUser = $stmt->fetch();
 
-  if ($foundUser && password_verify($pass, $foundUser['password'])) {
+  if ($foundUser && password_verify($pass, $foundUser['password_hash'])) {
+    session_regenerate_id(true); // защита от session fixation
     $_SESSION['user'] = $foundUser;
     if ($foundUser['role'] === 'admin') {
       header('Location: admin.php');
@@ -37,21 +39,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <?php include 'header.php'; ?>
 
 <main class="container">
-  <h1>Вход</h1>
-  <form method="post" class="form">
-    <label>Логин
-      <input name="login" value="<?= htmlspecialchars($login) ?>">
-    </label>
+  <div class="form-box">
+    <h1>Вход</h1>
 
-    <label>Пароль
-      <input type="password" name="password">
-    </label>
+    <?php if ($success): ?>
+      <div class="toast"><?= $success ?></div>
+    <?php endif; ?>
 
-    <span class="err"><?= $err ?></span>
+    <form method="post" class="form">
+      <label>Логин
+        <input name="login" value="<?= htmlspecialchars($login) ?>">
+      </label>
 
-    <button>Войти</button>
-    <a href="register.php">Еще не зарегистрированы? Регистрация</a>
-  </form>
+      <label>Пароль
+        <input type="password" name="password">
+      </label>
+
+      <span class="err"><?= $err ?></span>
+
+      <button>Войти</button>
+      <a href="register.php">Еще не зарегистрированы? Регистрация</a>
+    </form>
+  </div>
 </main>
 
 <?php include 'footer.php'; ?>

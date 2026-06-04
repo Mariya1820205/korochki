@@ -20,6 +20,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $stmt = $pdo->prepare('SELECT * FROM orders WHERE user_id = ? ORDER BY id DESC');
 $stmt->execute([user()['id']]);
 $orders = $stmt->fetchAll();
+
+// CSS-классы для бейджей статусов
+$badgeClass = [
+  'Новая' => 'badge-new',
+  'Идет обучение' => 'badge-progress',
+  'Обучение завершено' => 'badge-done',
+];
 ?>
 <!DOCTYPE html>
 <html lang="ru">
@@ -36,31 +43,46 @@ $orders = $stmt->fetchAll();
   <h1>Мои заявки</h1>
 
   <?php if (!$orders): ?>
-    <p>У вас пока нет заявок. <a href="apply.php">Подать заявку</a></p>
+    <div class="empty">
+      <p>У вас пока нет заявок.</p>
+      <a href="catalog.php" class="btn">Смотреть каталог</a>
+    </div>
   <?php endif; ?>
 
-  <?php foreach ($orders as $order): ?>
-    <div class="card">
-      <h3><?= htmlspecialchars($order['course']) ?></h3>
-      <p>Дата начала: <?= htmlspecialchars($order['start_date']) ?></p>
-      <p>Способ оплаты: <?= htmlspecialchars($order['payment']) ?></p>
-      <p>Статус: <b><?= htmlspecialchars($order['status']) ?></b></p>
+  <div class="orders">
+    <?php foreach ($orders as $order): ?>
+      <article class="order order--<?= $badgeClass[$order['status']] ?? 'badge-new' ?>">
+        <header class="order-head">
+          <h3><?= htmlspecialchars($order['course']) ?></h3>
+          <span class="badge <?= $badgeClass[$order['status']] ?? 'badge-new' ?>">
+            <?= htmlspecialchars($order['status']) ?>
+          </span>
+        </header>
 
-      <?php if ($order['status'] === 'Обучение завершено'): ?>
-        <?php if ($order['review']): ?>
-          <p>Ваш отзыв: <i><?= htmlspecialchars($order['review']) ?></i></p>
-        <?php else: ?>
-          <form method="post" class="form">
-            <input type="hidden" name="id" value="<?= $order['id'] ?>">
-            <label>Отзыв
-              <textarea name="review" required></textarea>
-            </label>
-            <button>Оставить отзыв</button>
-          </form>
+        <div class="order-info">
+          <div><span>Дата начала</span><b><?= formatDate($order['start_date']) ?></b></div>
+          <div><span>Способ оплаты</span><b><?= htmlspecialchars($order['payment']) ?></b></div>
+        </div>
+
+        <?php if ($order['status'] === 'Обучение завершено'): ?>
+          <?php if ($order['review']): ?>
+            <div class="review">
+              <span>Ваш отзыв:</span>
+              <p><?= htmlspecialchars($order['review']) ?></p>
+            </div>
+          <?php else: ?>
+            <form method="post" class="form review-form">
+              <input type="hidden" name="id" value="<?= (int)$order['id'] ?>">
+              <label>Оставьте отзыв о курсе
+                <textarea name="review" required placeholder="Расскажите, что понравилось..."></textarea>
+              </label>
+              <button>Отправить отзыв</button>
+            </form>
+          <?php endif; ?>
         <?php endif; ?>
-      <?php endif; ?>
-    </div>
-  <?php endforeach; ?>
+      </article>
+    <?php endforeach; ?>
+  </div>
 </main>
 
 <?php include 'footer.php'; ?>

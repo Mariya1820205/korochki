@@ -1,19 +1,28 @@
-<?php require 'db.php'; ?>
+<?php
+require 'db.php';
+$catalog = $pdo->query('SELECT * FROM catalog ORDER BY id')->fetchAll();
+?>
 <!DOCTYPE html>
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Корочки.есть</title>
+  <title>Учись.рф — онлайн-курсы ДПО</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <?php include 'header.php'; ?>
 
-<main class="container">
-  <h1>Онлайн-курсы ДПО</h1>
-  <p>Запишитесь на курсы дополнительного профессионального образования.</p>
+<section class="hero">
+  <div class="hero-text">
+    <h1>Учись.рф</h1>
+    <p>Современные онлайн-курсы дополнительного профессионального образования. Учись в удобном темпе и получай документ установленного образца.</p>
+    <a href="catalog.php" class="btn">Смотреть каталог</a>
+  </div>
+</section>
 
+<main class="container">
+  <h2>Популярные курсы</h2>
   <div class="slider" id="slider">
     <img src="img/image08.webp" class="slide active" alt="">
     <img src="img/image09.webp" class="slide" alt="">
@@ -25,18 +34,23 @@
 
   <h2>Наши курсы</h2>
   <div class="cards">
-    <div class="card-course">
-      <img src="img/image02.jpg" alt="">
-      <h3>Основы алгоритмизации и программирования</h3>
-    </div>
-    <div class="card-course">
-      <img src="img/image05.jpg" alt="">
-      <h3>Основы веб-дизайна</h3>
-    </div>
-    <div class="card-course">
-      <img src="img/image06.jpg" alt="">
-      <h3>Основы проектирования баз данных</h3>
-    </div>
+    <?php foreach ($catalog as $course): ?>
+      <div class="card">
+        <img src="img/<?= htmlspecialchars($course['image']) ?>" alt="">
+        <div class="card-body">
+          <h3><?= htmlspecialchars($course['title']) ?></h3>
+          <p><?= htmlspecialchars($course['description']) ?></p>
+          <p class="meta"><?= (int)$course['duration'] ?> ч · <?= (int)$course['price'] ?> ₽</p>
+        </div>
+      </div>
+    <?php endforeach; ?>
+  </div>
+
+  <h2>Почему мы</h2>
+  <div class="features">
+    <div class="feature"><h3>Документ</h3><p>Удостоверение о повышении квалификации установленного образца.</p></div>
+    <div class="feature"><h3>Практика</h3><p>Реальные задачи и проекты в портфолио уже во время обучения.</p></div>
+    <div class="feature"><h3>Поддержка</h3><p>Куратор и преподаватели отвечают в течение дня.</p></div>
   </div>
 </main>
 

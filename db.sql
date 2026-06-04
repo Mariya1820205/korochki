@@ -4,20 +4,29 @@ USE korochki;
 CREATE TABLE users (
   id INT AUTO_INCREMENT PRIMARY KEY,
   login VARCHAR(50) UNIQUE NOT NULL,
-  password VARCHAR(255) NOT NULL,
-  fio VARCHAR(100) NOT NULL,
+  password_hash VARCHAR(255) NOT NULL,
+  name VARCHAR(100) NOT NULL,
   phone VARCHAR(20) NOT NULL,
   email VARCHAR(100) NOT NULL,
   role VARCHAR(10) NOT NULL DEFAULT 'user'
 );
 
+CREATE TABLE catalog (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  title VARCHAR(150) NOT NULL,
+  description TEXT,
+  duration INT DEFAULT 0,
+  price INT DEFAULT 0,
+  image VARCHAR(50) DEFAULT 'image01.webp'
+);
+
 CREATE TABLE orders (
   id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT NOT NULL,
-  course VARCHAR(100) NOT NULL,
+  course VARCHAR(150) NOT NULL,
   start_date VARCHAR(10) NOT NULL,
   payment VARCHAR(20) NOT NULL,
   status VARCHAR(20) DEFAULT 'Новая',
   review TEXT,
-  FOREIGN KEY (user_id) REFERENCES users(id)
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
